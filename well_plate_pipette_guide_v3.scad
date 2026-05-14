@@ -6,14 +6,14 @@
 // ===== Global settings =====
 
 $fn = $preview ? 32 : 128; // facets for curves; fewer in preview for speed
-z_fight = $preview ? 0.05 : 0.0; // Z-fighting tolerance to avoid flickering in preview; set to 0 for final render
+z_fight = $preview ? 0.05 : 0.0; // coplanar-face offset; avoids Z-fighting in preview
 
 // ===== Parameters =====
 
 plate = "96"; // "24" or "96"
-tip_d = 1.20; // pipette tip OD at guide bore — measure your tips
+tip_d = 1.20; // pipette tip OD at guide bore -- measure your tips
 tip_clr = 0.15; // tip bore clearance
-fit_clr = 0.80; // plate fit clearance — loosen if jig is too snug
+fit_clr = 0.80; // plate fit clearance -- loosen if jig is too snug
 wall = 5.0; // frame wall / post thickness
 collar = 6.0; // registration skirt height
 air = 2.5; // gap above plate surface to guide plate underside
@@ -39,9 +39,10 @@ pw = 85.48;
 // ===== Derived =====
 
 bore = tip_d + tip_clr;
-funnel = pitch * 3 / 5; // 60% of pitch — clears neighbors
-fdepth = funnel / 2; // ≈45° entry cone
-slab = fdepth + 4; // guide plate: funnel + 4mm straight bore
+funnel = pitch * 3 / 5; // 60% of pitch -- clears neighbors
+fdepth = funnel / 2; // ~45 deg entry cone
+straight = 4; // straight bore below funnel
+slab = fdepth + straight; // guide plate thickness
 top_z = ph + air;
 ht = top_z + slab;
 
@@ -50,6 +51,11 @@ ow = pw + 2 * (fit_clr + wall);
 il = pl + 2 * fit_clr; // inner cavity
 iw = pw + 2 * fit_clr;
 
+tab_l = 18; // lift tab length
+tab_w = 9; // lift tab width
+tab_h = 3; // lift tab height
+emboss = 0.3; // label extrusion height
+
 // ===== Model =====
 
 difference() {
@@ -57,8 +63,8 @@ difference() {
     // Registration collar
     difference() {
       rbox(ol, ow, collar, wall / 2);
-      translate([0, 0, -0.1])
-        rbox(il, iw, collar + 1, wall);
+      translate([0, 0, -z_fight])
+        rbox(il, iw, collar + 2 * z_fight, wall);
     }
 
     // Corner posts
@@ -72,35 +78,35 @@ difference() {
 
     // Lift tabs
     for (sx = [-1, 1])
-      translate([sx * (ol / 2), 0, ht - 3])
-        rbox(18, 9, 3, wall / 2);
+      translate([sx * (ol / 2), 0, ht - tab_h])
+        rbox(tab_l, tab_w, tab_h, wall / 2);
   }
 
   // Bore + funnel at each well
   for (r = [0:rows - 1], c = [0:cols - 1]) {
     p = wpos(r, c);
-    translate([p.x, p.y, top_z - 0.1])
-      cylinder(h=slab + 1, d=bore);
+    translate([p.x, p.y, top_z - z_fight])
+      cylinder(h=slab + 2 * z_fight, d=bore);
     translate([p.x, p.y, ht - fdepth])
-      cylinder(h=fdepth + 0.1, d1=bore, d2=funnel);
+      cylinder(h=fdepth + z_fight, d1=bore, d2=funnel);
   }
 }
 
 // Labels
 if (labels) {
-  lsz = pitch / 4;
-  lmg = pitch * 2 / 3;
+  lsz = pitch / 4; // 1/4 pitch
+  lmg = pitch * 2 / 3; // 2/3 pitch from well center
   color("black") {
     for (r = [0:rows - 1]) {
       p = wpos(r, 0);
       translate([p.x - lmg, p.y, ht])
-        linear_extrude(0.3)
+        linear_extrude(emboss)
           text(chr(65 + r), size=lsz, halign="center", valign="center");
     }
     for (c = [0:cols - 1]) {
       p = wpos(0, c);
       translate([p.x, p.y + lmg, ht])
-        linear_extrude(0.3)
+        linear_extrude(emboss)
           text(str(c + 1), size=lsz, halign="center", valign="center");
     }
   }

@@ -7,6 +7,8 @@
 //         parameter below for a custom plate format.
 //
 //  Units: mm
+//
+// By Cameron Brooks and Hadden Christ, May 2026
 // ============================================================
 
 $fn = 64;

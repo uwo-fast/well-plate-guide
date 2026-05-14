@@ -1,6 +1,7 @@
 // Well-Plate Pipette Guide
 // Sits on a well plate; funneled holes guide pipette tips into each well.
 // Units: mm
+// By Cameron Brooks and Hadden Christ, May 2026
 
 // ===== Parameters =====
 

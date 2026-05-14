@@ -3,6 +3,11 @@
 // Units: mm
 // By Cameron Brooks and Hadden Christ, May 2026
 
+// ===== Global settings =====
+
+$fn = $preview ? 32 : 128; // facets for curves; fewer in preview for speed
+z_fight = $preview ? 0.05 : 0.0; // Z-fighting tolerance to avoid flickering in preview; set to 0 for final render
+
 // ===== Parameters =====
 
 plate = "96"; // "24" or "96"
@@ -44,8 +49,6 @@ ol = pl + 2 * (fit_clr + wall); // outer envelope
 ow = pw + 2 * (fit_clr + wall);
 il = pl + 2 * fit_clr; // inner cavity
 iw = pw + 2 * fit_clr;
-
-$fn = $preview ? 32 : 128; // facets for curves; fewer in preview for speed
 
 // ===== Model =====
 

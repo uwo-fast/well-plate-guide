@@ -24,7 +24,8 @@ module dummy(){}; // dummy module to stop customizer from picking up internal pa
 // ===== Plate specs (SBS/ANSI standard) =====
 //                      rows cols  a1_x   a1_y  pitch  height
 spec =
-  (plate == "24") ? [4, 6, 18.83, 15.69, 18.0, 14.35]
+  (plate == "24") ? 
+  [4, 6, 18.83, 15.69, 18.0, 14.35]
   : [8, 12, 14.38, 11.24, 9.0, 14.40];
 
 rows = spec[0];

@@ -24,8 +24,8 @@ module dummy(){}; // dummy module to stop customizer from picking up internal pa
 // ===== Plate specs (SBS/ANSI standard) =====
 //                      rows cols  a1_x   a1_y  pitch  height
 spec =
-  (plate == "24") ? 
-  [4, 6, 18.83, 15.69, 18.0, 14.35]
+  (plate == "24") ?
+    [4, 6, 18.83, 15.69, 18.0, 14.35]
   : [8, 12, 14.38, 11.24, 9.0, 14.40];
 
 rows = spec[0];
@@ -84,8 +84,8 @@ difference() {
   }
 
   // Bore + funnel at each well
-  for (r = [0:rows - 1], c = [0:cols - 1]) {
-    p = well_pos(r, c);
+  for (row = [0:rows - 1], col = [0:cols - 1]) {
+    p = well_position(row, col);
     translate([p.x, p.y, top_z - z_fight])
       cylinder(h=slab + 2 * z_fight, d=bore);
     translate([p.x, p.y, height - funnel_depth])
@@ -98,27 +98,27 @@ if (labels) {
   label_size = pitch / 4; // 1/4 pitch
   label_margin = pitch * 2 / 3; // 2/3 pitch from well center
   color("black") {
-    for (r = [0:rows - 1]) {
-      p = well_pos(r, 0);
+    for (row = [0:rows - 1]) {
+      p = well_position(row, 0);
       translate([p.x - label_margin, p.y, height])
         linear_extrude(emboss)
-          text(chr(65 + r), size=label_size, halign="center", valign="center");
+          text(chr(65 + row), size=label_size, halign="center", valign="center");
     }
-    for (c = [0:cols - 1]) {
-      p = well_pos(0, c);
+    for (col = [0:cols - 1]) {
+      p = well_position(0, col);
       translate([p.x, p.y + label_margin, height])
         linear_extrude(emboss)
-          text(str(c + 1), size=label_size, halign="center", valign="center");
+          text(str(col + 1), size=label_size, halign="center", valign="center");
     }
   }
 }
 
 // ===== Helpers =====
 
-function well_pos(r, c) =
+function well_position(row, col) =
   [
-    -plate_length / 2 + a1_x + c * pitch,
-    plate_width / 2 - a1_y - r * pitch,
+    -plate_length / 2 + a1_x + col * pitch,
+    plate_width / 2 - a1_y - row * pitch,
     0,
   ];
 

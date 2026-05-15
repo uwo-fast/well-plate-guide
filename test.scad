@@ -69,17 +69,19 @@ label_depth = 0.5; // engraved label depth, AI recommended clearance for PETG: 0
 
 difference() {
   union() {
-    // Registration collar
-    difference() {
-      rbox(outer_length, outer_width, collar, wall / 2);
-      translate([0, 0, -z_fight])
-        rbox(inner_length, inner_width, collar + 2 * z_fight, wall);
-    }
+  
+//corner posts
+post_diameter = 4.4;      // must be less than wall
+post_clearance = 0.3;     // gap from inner clearance wall
+post_overlap = 0.8;       // overlap into guide plate for strength
 
-    // Corner posts
-    for (sx = [-1, 1], sy = [-1, 1])
-      translate([sx * (inner_length / 2 + wall / 2), sy * (inner_width / 2 + wall / 2), collar])
-        cylinder(d=wall, h=top_z - collar);
+for (sx = [-1, 1], sy = [-1, 1]) {
+  x = sx * (inner_length / 2 + post_clearance + post_diameter / 2);
+  y = sy * (inner_width / 2 + post_clearance + post_diameter / 2);
+
+  translate([x, y, 0])
+    cylinder(d=post_diameter, h=top_z + post_overlap);
+}
 
     // Guide plate
     translate([0, 0, top_z])

@@ -12,8 +12,8 @@ z_fight = 0.05;
 
 plate = "24"; // "24" or "96"
 tip_diameter = 1.20;
-tip_clearance = 0.15;
-fit_clearance = 0.80;
+tip_clearance = 0.15; //AI recommended clearance for PETG: 0.35 
+fit_clearance = 0.80; //AI recommended clearance for PETG: 0.80
 wall = 5.0;
 collar = 6.0;
 air = 2.5;
@@ -24,7 +24,7 @@ module dummy(){};
 // ===== Plate specs =====
 //                      rows cols  a1_x   a1_y  pitch  height
 spec =
-  (plate == "96") ?
+  (plate == "24") ?
     [4, 6, 18.83, 15.69, 18.0, 14.35]
   :
     [8, 12, 14.38, 11.24, 9.0, 14.40];
@@ -63,7 +63,7 @@ tab_length = 18;
 tab_width = 9;
 tab_height = 3;
 
-label_depth = 0.5; // engraved label depth
+label_depth = 0.5; // engraved label depth, AI recommended clearance for PETG: 0.7
 
 // ===== Model =====
 

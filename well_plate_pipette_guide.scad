@@ -1,7 +1,8 @@
-// Well-Plate Pipette Guide
+// Well-Plate Pipette Guide v0.4.0
 // Sits on a well plate; funneled holes guide pipette tips into each well.
 // Units: mm
 // By Cameron Brooks and Hadden Christ, May 2026
+// License: AGPL-3.0 (see LICENSE)
 
 // ===== Global settings =====
 

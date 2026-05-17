@@ -15,7 +15,8 @@ tip_diameter = 1.20; // pipette tip OD at guide bore -- measure your tips
 tip_clearance = 0.15; // tip bore clearance
 fit_clearance = 0.80; // plate fit clearance -- loosen if jig is too snug
 wall = 5.0; // frame wall / post thickness
-collar = 6.0; // registration skirt height
+support_style = "posts"; // "collar" or "posts"
+collar = 6.0; // registration skirt height (collar mode)
 air = 2.5; // gap above plate surface to guide plate underside
 labels = true;
 
@@ -61,17 +62,24 @@ label_depth = 0.5; // engraved label depth
 
 difference() {
   union() {
-    // Registration collar
-    difference() {
-      rbox(outer_length, outer_width, collar, wall / 2);
-      translate([0, 0, -z_fight])
-        rbox(inner_length, inner_width, collar + 2 * z_fight, wall);
-    }
+    if (support_style == "collar") {
+      // Registration collar
+      difference() {
+        rbox(outer_length, outer_width, collar, wall / 2);
+        translate([0, 0, -z_fight])
+          rbox(inner_length, inner_width, collar + 2 * z_fight, wall);
+      }
 
-    // Corner posts
-    for (sx = [-1, 1], sy = [-1, 1])
-      translate([sx * (inner_length / 2 + wall / 2), sy * (inner_width / 2 + wall / 2), collar])
-        cylinder(d=wall, h=top_z - collar);
+      // Corner posts (on top of collar)
+      for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx * (inner_length / 2 + wall / 2), sy * (inner_width / 2 + wall / 2), collar])
+          cylinder(d=wall, h=top_z - collar);
+    } else {
+      // Freestanding corner posts (no collar)
+      for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx * (inner_length / 2 + wall / 2), sy * (inner_width / 2 + wall / 2), 0])
+          cylinder(d=wall, h=top_z);
+    }
 
     // Guide plate
     translate([0, 0, top_z])

@@ -52,8 +52,7 @@ module dummy(){};
 spec =
   (plate == "24") ?
     [4, 6, 18.83, 15.69, 18.0, 14.35]
-  :
-    [8, 12, 14.38, 11.24, 9.0, 14.40];
+  : [8, 12, 14.38, 11.24, 9.0, 14.40];
 
 rows = spec[0];
 cols = spec[1];
@@ -113,12 +112,14 @@ difference() {
     // Corner posts
     // These support the top guide plate above the well plate.
     for (sx = [-1, 1], sy = [-1, 1])
-      translate([
-        sx * (inner_length / 2 + wall / 2),
-        sy * (inner_width / 2 + wall / 2),
-        collar
-      ])
-        cylinder(d = wall, h = top_z - collar);
+      translate(
+        [
+          sx * (inner_length / 2 + wall / 2),
+          sy * (inner_width / 2 + wall / 2),
+          collar,
+        ]
+      )
+        cylinder(d=wall, h=top_z - collar);
 
     // Guide plate
     // PP version is slightly thicker to reduce flex.
@@ -128,33 +129,35 @@ difference() {
     // Lift tabs
     // Small side tabs make the guide easier to remove from the plate.
     for (sx = [-1, 1])
-      translate([
-        sx * (outer_length / 2),
-        0,
-        height - tab_height
-      ])
+      translate(
+        [
+          sx * (outer_length / 2),
+          0,
+          height - tab_height,
+        ]
+      )
         rbox(tab_length, tab_width, tab_height, wall / 2);
   }
 
   // Bore + funnel at each well
   // Bore is the straight hole for the pipette tip.
   // Funnel helps guide the tip into the bore.
-  for (row = [0 : rows - 1], col = [0 : cols - 1]) {
+  for (row = [0:rows - 1], col = [0:cols - 1]) {
     p = well_position(row, col);
 
     // Straight bore
     translate([p[0], p[1], top_z - z_fight])
       cylinder(
-        h = slab + 2 * z_fight,
-        d = bore
+        h=slab + 2 * z_fight,
+        d=bore
       );
 
     // Tapered funnel
     translate([p[0], p[1], height - funnel_depth - z_fight])
       cylinder(
-        h = funnel_depth + 2 * z_fight,
-        d1 = bore,
-        d2 = funnel
+        h=funnel_depth + 2 * z_fight,
+        d1=bore,
+        d2=funnel
       );
   }
 
@@ -163,38 +166,42 @@ difference() {
   if (labels) {
 
     // Row labels: A, B, C, etc.
-    for (row = [0 : rows - 1]) {
+    for (row = [0:rows - 1]) {
       p = well_position(row, 0);
 
-      translate([
-        p[0] - label_margin,
-        p[1],
-        height - label_depth
-      ])
+      translate(
+        [
+          p[0] - label_margin,
+          p[1],
+          height - label_depth,
+        ]
+      )
         linear_extrude(label_depth + z_fight)
           text(
             chr(65 + row),
-            size = label_size,
-            halign = "center",
-            valign = "center"
+            size=label_size,
+            halign="center",
+            valign="center"
           );
     }
 
     // Column labels: 1, 2, 3, etc.
-    for (col = [0 : cols - 1]) {
+    for (col = [0:cols - 1]) {
       p = well_position(0, col);
 
-      translate([
-        p[0],
-        p[1] + label_margin,
-        height - label_depth
-      ])
+      translate(
+        [
+          p[0],
+          p[1] + label_margin,
+          height - label_depth,
+        ]
+      )
         linear_extrude(label_depth + z_fight)
           text(
             str(col + 1),
-            size = label_size,
-            halign = "center",
-            valign = "center"
+            size=label_size,
+            halign="center",
+            valign="center"
           );
     }
   }
@@ -205,16 +212,15 @@ difference() {
 function well_position(row, col) =
   [
     -plate_length / 2 + a1_x + col * pitch,
-     plate_width / 2 - a1_y - row * pitch,
-     0
+    plate_width / 2 - a1_y - row * pitch,
+    0,
   ];
 
 module rbox(length, width, height, radius) {
-  hull()
-    for (
-      x = [-length / 2 + radius, length / 2 - radius],
-      y = [-width / 2 + radius, width / 2 - radius]
-    )
-      translate([x, y, 0])
-        cylinder(h = height, r = radius);
+  hull()for (
+    x = [-length / 2 + radius, length / 2 - radius],
+    y = [-width / 2 + radius, width / 2 - radius]
+  )
+    translate([x, y, 0])
+      cylinder(h=height, r=radius);
 }

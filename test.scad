@@ -26,8 +26,7 @@ module dummy(){};
 spec =
   (plate == "24") ?
     [4, 6, 18.83, 15.69, 18.0, 14.35]
-  :
-    [8, 12, 14.38, 11.24, 9.0, 14.40];
+  : [8, 12, 14.38, 11.24, 9.0, 14.40];
 
 rows = spec[0];
 cols = spec[1];
@@ -69,19 +68,19 @@ label_depth = 0.5; // engraved label depth, AI recommended clearance for PETG: 0
 
 difference() {
   union() {
-  
-//corner posts
-post_diameter = 4.4;      // must be less than wall
-post_clearance = 0.3;     // gap from inner clearance wall
-post_overlap = 0.8;       // overlap into guide plate for strength
 
-for (sx = [-1, 1], sy = [-1, 1]) {
-  x = sx * (inner_length / 2 + post_clearance + post_diameter / 2);
-  y = sy * (inner_width / 2 + post_clearance + post_diameter / 2);
+    //corner posts
+    post_diameter = 4.4; // must be less than wall
+    post_clearance = 0.3; // gap from inner clearance wall
+    post_overlap = 0.8; // overlap into guide plate for strength
 
-  translate([x, y, 0])
-    cylinder(d=post_diameter, h=top_z + post_overlap);
-}
+    for (sx = [-1, 1], sy = [-1, 1]) {
+      x = sx * (inner_length / 2 + post_clearance + post_diameter / 2);
+      y = sy * (inner_width / 2 + post_clearance + post_diameter / 2);
+
+      translate([x, y, 0])
+        cylinder(d=post_diameter, h=top_z + post_overlap);
+    }
 
     // Guide plate
     translate([0, 0, top_z])
@@ -131,13 +130,14 @@ function well_position(row, col) =
   [
     -plate_length / 2 + a1_x + col * pitch,
     plate_width / 2 - a1_y - row * pitch,
-    0
+    0,
   ];
 
 module rbox(length, width, height, radius) {
-  hull()
-    for (x = [-length / 2 + radius, length / 2 - radius],
-         y = [-width / 2 + radius, width / 2 - radius])
-      translate([x, y, 0])
-        cylinder(h=height, r=radius);
+  hull()for (
+    x = [-length / 2 + radius, length / 2 - radius],
+    y = [-width / 2 + radius, width / 2 - radius]
+  )
+    translate([x, y, 0])
+      cylinder(h=height, r=radius);
 }

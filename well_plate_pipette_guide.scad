@@ -20,6 +20,11 @@ support_style = "posts"; // "collar" or "posts"
 collar = 6.0; // registration skirt height (collar mode)
 air = 2.5; // gap above plate surface to guide plate underside
 labels = true;
+straight = 4; // straight bore below funnel
+tab_length = 18; // lift tab length
+tab_width = 9; // lift tab width
+tab_height = 3; // lift tab height
+label_depth = 0.5; // engraved label depth
 
 module dummy(){}; // dummy module to stop customizer from picking up internal parameters as user parameters
 
@@ -36,7 +41,7 @@ a1_x = spec[2];
 a1_y = spec[3];
 pitch = spec[4];
 plate_height = spec[5];
-plate_length = 127.76;
+plate_length = 127.76; // SBS/ANSI footprint (same for all plate types)
 plate_width = 85.48;
 
 // ===== Derived =====
@@ -44,7 +49,6 @@ plate_width = 85.48;
 bore = tip_diameter + tip_clearance + shrink_allowance;
 funnel = pitch * 3 / 5; // 60% of pitch -- clears neighbors
 funnel_depth = funnel / 2; // ~45 deg entry cone
-straight = 4; // straight bore below funnel
 slab = funnel_depth + straight; // guide plate thickness
 top_z = plate_height + air;
 height = top_z + slab;
@@ -53,11 +57,6 @@ outer_length = plate_length + 2 * (fit_clearance + shrink_allowance + wall); // 
 outer_width = plate_width + 2 * (fit_clearance + shrink_allowance + wall);
 inner_length = plate_length + 2 * (fit_clearance + shrink_allowance); // inner cavity
 inner_width = plate_width + 2 * (fit_clearance + shrink_allowance);
-
-tab_length = 18; // lift tab length
-tab_width = 9; // lift tab width
-tab_height = 3; // lift tab height
-label_depth = 0.5; // engraved label depth
 
 // ===== Model =====
 

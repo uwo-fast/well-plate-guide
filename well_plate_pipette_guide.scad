@@ -14,6 +14,7 @@ plate = "24"; // "24" or "96"
 tip_diameter = 1.20; // pipette tip OD at guide bore -- measure your tips
 tip_clearance = 0.15; // tip bore clearance
 fit_clearance = 0.80; // plate fit clearance -- loosen if jig is too snug
+shrink_allowance = 0.0; // extra clearance for shrink-prone materials (e.g. PP: 0.35)
 wall = 5.0; // frame wall / post thickness
 support_style = "posts"; // "collar" or "posts"
 collar = 6.0; // registration skirt height (collar mode)
@@ -40,7 +41,7 @@ plate_width = 85.48;
 
 // ===== Derived =====
 
-bore = tip_diameter + tip_clearance;
+bore = tip_diameter + tip_clearance + shrink_allowance;
 funnel = pitch * 3 / 5; // 60% of pitch -- clears neighbors
 funnel_depth = funnel / 2; // ~45 deg entry cone
 straight = 4; // straight bore below funnel
@@ -48,10 +49,10 @@ slab = funnel_depth + straight; // guide plate thickness
 top_z = plate_height + air;
 height = top_z + slab;
 
-outer_length = plate_length + 2 * (fit_clearance + wall); // outer envelope
-outer_width = plate_width + 2 * (fit_clearance + wall);
-inner_length = plate_length + 2 * fit_clearance; // inner cavity
-inner_width = plate_width + 2 * fit_clearance;
+outer_length = plate_length + 2 * (fit_clearance + shrink_allowance + wall); // outer envelope
+outer_width = plate_width + 2 * (fit_clearance + shrink_allowance + wall);
+inner_length = plate_length + 2 * (fit_clearance + shrink_allowance); // inner cavity
+inner_width = plate_width + 2 * (fit_clearance + shrink_allowance);
 
 tab_length = 18; // lift tab length
 tab_width = 9; // lift tab width

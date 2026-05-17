@@ -55,7 +55,7 @@ inner_width = plate_width + 2 * fit_clearance;
 tab_length = 18; // lift tab length
 tab_width = 9; // lift tab width
 tab_height = 3; // lift tab height
-emboss = 0.3; // label extrusion height
+label_depth = 0.5; // engraved label depth
 
 // ===== Model =====
 
@@ -91,23 +91,22 @@ difference() {
     translate([p.x, p.y, height - funnel_depth])
       cylinder(h=funnel_depth + z_fight, d1=bore, d2=funnel);
   }
-}
 
-// Labels
-if (labels) {
-  label_size = pitch / 4; // 1/4 pitch
-  label_margin = pitch * 2 / 3; // 2/3 pitch from well center
-  color("black") {
+  // Engraved labels
+  if (labels) {
+    label_size = pitch / 4; // 1/4 pitch
+    label_margin = pitch * 2 / 3; // 2/3 pitch from well center
+
     for (row = [0:rows - 1]) {
       p = well_position(row, 0);
-      translate([p.x - label_margin, p.y, height])
-        linear_extrude(emboss)
+      translate([p.x - label_margin, p.y, height - label_depth])
+        linear_extrude(label_depth + z_fight)
           text(chr(65 + row), size=label_size, halign="center", valign="center");
     }
     for (col = [0:cols - 1]) {
       p = well_position(0, col);
-      translate([p.x, p.y + label_margin, height])
-        linear_extrude(emboss)
+      translate([p.x, p.y + label_margin, height - label_depth])
+        linear_extrude(label_depth + z_fight)
           text(str(col + 1), size=label_size, halign="center", valign="center");
     }
   }

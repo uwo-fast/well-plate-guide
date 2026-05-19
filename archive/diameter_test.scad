@@ -27,9 +27,9 @@ module dummy(){};
 // This controls the wide upper funnel only.
 // The small bore is still based on the pipette tip diameter.
 
-pen_diameter = 8.0;      // BIC Round Stic / pipette body reference diameter
-pen_clearance = 0.6;     // increase if too tight, decrease if too loose
-max_funnel_24 = 9.0;     // keeps enough material between 24-well holes
+pen_diameter = 8.0; // BIC Round Stic / pipette body reference diameter
+pen_clearance = 0.6; // increase if too tight, decrease if too loose
+max_funnel_24 = 9.0; // keeps enough material between 24-well holes
 
 upper_holder_diameter = pen_diameter + pen_clearance;
 
@@ -37,17 +37,16 @@ upper_holder_diameter = pen_diameter + pen_clearance;
 // These posts stay inside the guide plate footprint
 // but outside the real plate clearance zone.
 
-post_diameter = 4.4;     // slim post, less than wall thickness
-post_clearance = 0.3;    // gap from inner plate clearance zone
-post_overlap = 0.8;      // overlaps into guide plate for print strength
+post_diameter = 4.4; // slim post, less than wall thickness
+post_clearance = 0.3; // gap from inner plate clearance zone
+post_overlap = 0.8; // overlaps into guide plate for print strength
 
 // ===== Plate specs =====
 //                      rows cols  a1_x   a1_y  pitch  plate/well height
 spec =
   (plate == "24") ?
     [4, 6, 18.83, 15.69, 18.0, 13.20]
-  :
-    [8, 12, 14.38, 11.24, 9.0, 14.40];
+  : [8, 12, 14.38, 11.24, 9.0, 14.40];
 
 rows = spec[0];
 cols = spec[1];
@@ -74,8 +73,7 @@ funnel_depth = slab - straight;
 funnel =
   (plate == "24") ?
     min(upper_holder_diameter, max_funnel_24)
-  :
-    5.4;
+  : 5.4;
 
 top_z = plate_height + air;
 height = top_z + slab;
@@ -169,14 +167,15 @@ difference() {
 function well_position(row, col) =
   [
     -plate_length / 2 + a1_x + col * pitch,
-     plate_width / 2 - a1_y - row * pitch,
-    0
+    plate_width / 2 - a1_y - row * pitch,
+    0,
   ];
 
 module rbox(length, width, height, radius) {
-  hull()
-    for (x = [-length / 2 + radius, length / 2 - radius],
-         y = [-width / 2 + radius, width / 2 - radius])
-      translate([x, y, 0])
-        cylinder(h=height, r=radius);
+  hull()for (
+    x = [-length / 2 + radius, length / 2 - radius],
+    y = [-width / 2 + radius, width / 2 - radius]
+  )
+    translate([x, y, 0])
+      cylinder(h=height, r=radius);
 }

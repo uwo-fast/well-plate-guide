@@ -258,14 +258,8 @@ module insert(
       // Downward sockets into wells
       for (r = [0:rows - 1], c = [0:cols - 1]) {
         p = well_xy(r, c, plate_length, plate_width, a1_x, a1_y, pitch);
-        tip_socket(
-          p.x,
-          p.y,
-          base_z,
-          socket_depth,
-          socket_od_bottom,
-          socket_od_top
-        );
+        translate([p.x, p.y, base_z - socket_depth])
+          cylinder(h=socket_depth + z_fight, d1=socket_od_bottom, d2=socket_od_top);
       }
 
       // Locator lip (+ optional snap bumps)
@@ -289,17 +283,16 @@ module insert(
     // Multi-stage bore at each well
     for (r = [0:rows - 1], c = [0:cols - 1]) {
       p = well_xy(r, c, plate_length, plate_width, a1_x, a1_y, pitch);
-      bore_cutout(
-        p.x,
-        p.y,
-        base_z,
-        guide_bore,
-        shaft_bore,
-        entry_bore,
-        guide_straight,
-        socket_depth,
-        shaft_straight
-      );
+      translate([p.x, p.y, 0])
+        bore_cutout(
+          base_z,
+          guide_bore,
+          shaft_bore,
+          entry_bore,
+          guide_straight,
+          socket_depth,
+          shaft_straight
+        );
     }
 
     // Engraved labels
@@ -391,21 +384,7 @@ module corner_leg(
     rbox(leg_width, arm + leg_width, height + z_fight, leg_width / 2);
 }
 
-module tip_socket(
-  x,
-  y,
-  base_z,
-  socket_depth,
-  od_bottom,
-  od_top
-) {
-  translate([x, y, base_z - socket_depth])
-    cylinder(h=socket_depth + z_fight, d1=od_bottom, d2=od_top);
-}
-
 module bore_cutout(
-  x,
-  y,
   base_z,
   guide_bore,
   shaft_bore,
@@ -418,17 +397,17 @@ module bore_cutout(
   slab = funnel_depth + shaft_straight;
 
   // 1. Narrow guide bore (bottom of socket)
-  translate([x, y, base_z - socket_depth - z_fight])
+  translate([0, 0, base_z - socket_depth - z_fight])
     cylinder(h=guide_straight + 2 * z_fight, d=guide_bore);
 
   // 2. Taper from guide bore to shaft bore
   taper_start = base_z - socket_depth + guide_straight;
   taper_height = socket_depth + shaft_straight - guide_straight;
-  translate([x, y, taper_start - z_fight])
+  translate([0, 0, taper_start - z_fight])
     cylinder(h=taper_height + 2 * z_fight, d1=guide_bore, d2=shaft_bore);
 
   // 3. Top funnel (shaft bore → entry bore)
-  translate([x, y, base_z + slab - funnel_depth])
+  translate([0, 0, base_z + slab - funnel_depth])
     cylinder(h=funnel_depth + z_fight, d1=shaft_bore, d2=entry_bore);
 }
 

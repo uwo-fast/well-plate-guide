@@ -487,9 +487,10 @@ function well_xy(
     0,
   ];
 
+// Rounded-corner box: cube minus corners + corner cylinders.
+// More efficient than hull() of 4 cylinders.
 module rbox(length, width, height, radius) {
-  // Rounded-corner box: cube minus corners + corner cylinders.
-  // More efficient than hull() of 4 cylinders.
+  assert(radius <= min(length, width) / 2, "Radius too large for given length/width");
   translate([0, 0, height / 2])
     union() {
       difference() {

@@ -84,7 +84,7 @@ module wp_rounded_rect(size_x, size_y, r) {
 // Uses union (not intersection) to avoid CSG tree explosion with large arrays
 module wp_single_well(type) {
   d = wp_well_d(type);
-  depth = wp_well_depth(type) + ($preview ? 0.05 : 0); // Avoid z-fight in preview
+  depth = wp_well_depth(type) + 0.05; // Avoid z-fight
   br = wp_bottom_r(type);
 
   if (wp_well_shape(type) == "round") {
@@ -96,7 +96,7 @@ module wp_single_well(type) {
       // Sphere bottom half forms the U-bottom; top half is redundant
       // (subsumed by cylinder). Safe because this is negative space.
       translate([0, 0, br])
-        cylinder(h=depth - br, d=d, $fn=32);
+        cylinder(h=depth - br, d2=d, d1 = br*2, $fn=32);
       translate([0, 0, br])
         sphere(r=br, $fn=32);
     }

@@ -137,11 +137,9 @@ if (render_part == "stand" || render_part == "assembly") {
 if (render_part == "insert" || render_part == "assembly") {
   translate([0, 0, render_part == "assembly" ? top_z - socket_depth : 0])
     insert(
-      socket_depth,
       outer_length,
       outer_width,
-      locator_length,
-      locator_width,
+      wall,
       plate_length,
       plate_width,
       rows,
@@ -149,9 +147,6 @@ if (render_part == "insert" || render_part == "assembly") {
       a1_x,
       a1_y,
       pitch,
-      slab,
-      wall,
-      funnel_depth,
       shaft_straight,
       guide_bore,
       shaft_bore,
@@ -159,8 +154,6 @@ if (render_part == "insert" || render_part == "assembly") {
       guide_straight,
       socket_depth,
       socket_wall,
-      socket_od_bottom,
-      socket_od_top,
       tab_length,
       tab_width,
       tab_height,
@@ -220,11 +213,9 @@ module stand(
 // ===== Insert module =====
 
 module insert(
-  base_z,
   outer_length,
   outer_width,
-  locator_length,
-  locator_width,
+  wall,
   plate_length,
   plate_width,
   rows,
@@ -232,9 +223,6 @@ module insert(
   a1_x,
   a1_y,
   pitch,
-  slab,
-  wall,
-  funnel_depth,
   shaft_straight,
   guide_bore,
   shaft_bore,
@@ -242,8 +230,6 @@ module insert(
   guide_straight,
   socket_depth,
   socket_wall,
-  socket_od_bottom,
-  socket_od_top,
   tab_length,
   tab_width,
   tab_height,
@@ -255,6 +241,14 @@ module insert(
   snap_bump_length,
   snap_bump_height
 ) {
+  // Derived locally
+  funnel_depth = entry_bore / 2;
+  slab = funnel_depth + shaft_straight;
+  base_z = socket_depth;
+  locator_length = outer_length - 2 * wall;
+  locator_width = outer_width - 2 * wall;
+  socket_od_bottom = guide_bore + 2 * socket_wall;
+  socket_od_top = shaft_bore + 2 * socket_wall;
   difference() {
     union() {
       // Guide plate body
@@ -299,14 +293,12 @@ module insert(
         p.x,
         p.y,
         base_z,
-        slab,
         guide_bore,
         shaft_bore,
         entry_bore,
         guide_straight,
         socket_depth,
-        shaft_straight,
-        funnel_depth
+        shaft_straight
       );
     }
 
@@ -415,15 +407,16 @@ module bore_cutout(
   x,
   y,
   base_z,
-  slab,
   guide_bore,
   shaft_bore,
   entry_bore,
   guide_straight,
   socket_depth,
-  shaft_straight,
-  funnel_depth
+  shaft_straight
 ) {
+  funnel_depth = entry_bore / 2;
+  slab = funnel_depth + shaft_straight;
+
   // 1. Narrow guide bore (bottom of socket)
   translate([x, y, base_z - socket_depth - z_fight])
     cylinder(h=guide_straight + 2 * z_fight, d=guide_bore);

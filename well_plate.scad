@@ -81,44 +81,35 @@ module wp_rounded_rect(size_x, size_y, r) {
 }
 
 // Single well bore (negative space)
+// Uses union (not intersection) to avoid CSG tree explosion with large arrays
 module wp_single_well(type) {
   d = wp_well_d(type);
   depth = wp_well_depth(type) + ($preview ? 0.05 : 0); // Avoid z-fight in preview
   br = wp_bottom_r(type);
 
   if (wp_well_shape(type) == "round") {
-    // Main cylinder
     if (br == 0) {
       // Flat bottom
       cylinder(h=depth, d=d, $fn=32);
     } else {
-      // Round bottom: cylinder + spherical cap
-      cyl_h = depth - br;
-      if (cyl_h > 0)
-        translate([0, 0, br])
-          cylinder(h=cyl_h, d=d, $fn=32);
-      // Spherical bottom
-      intersection() {
-        cylinder(h=depth, d=d, $fn=32);
+      // Round bottom: cylinder + sphere at z=br
+      // Sphere bottom half forms the U-bottom; top half is redundant
+      // (subsumed by cylinder). Safe because this is negative space.
+      translate([0, 0, br])
+        cylinder(h=depth - br, d=d, $fn=32);
+      translate([0, 0, br])
         sphere(r=br, $fn=32);
-      }
     }
   } else {
     // Square well
     if (br == 0) {
       cube([d, d, depth], center=false);
     } else {
-      // Square with rounded bottom edges
-      cyl_h = depth - br;
-      if (cyl_h > 0)
-        translate([0, 0, br])
-          cube([d, d, cyl_h]);
-      // Rounded bottom via minkowski with sphere (simplified)
-      intersection() {
-        cube([d, d, depth]);
-        translate([d / 2, d / 2, 0])
-          sphere(r=br, $fn=32);
-      }
+      // Square with rounded bottom: cube + sphere
+      translate([0, 0, br])
+        cube([d, d, depth - br]);
+      translate([d / 2, d / 2, br])
+        sphere(r=br, $fn=32);
     }
   }
 }

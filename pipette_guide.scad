@@ -6,15 +6,12 @@
 // License: AGPL-3.0 (see LICENSE)
 //
 // Out of scope:
-//   - Rim/lip stacking features
-//   - Deep-well / chimney plates (exceed SLAS-2 14.35mm)
 //   - 24-well plates (non-standard, to be added later)
 //
 
 // TODO / Future work:
 //   - 24-well plate support (non-SLAS, needs height override in well_plates.scad)
 //   - Well taper in plate model (does not affect guide geometry)
-//   - Rail-style support option (currently legs only)
 
 include <well_plates.scad>
 include <well_plate.scad>
@@ -105,13 +102,14 @@ if (render_well_plate)
     well_plate(plate_type);
 
 if (render_part == "stand" || render_part == "assembly")
-  color("ForestGreen")
-    stand();
+  stand();
+
+guide_z_pos =
+(offset_assembly ? stand_height : 0) + (render_part == "assembly" ? stand_height : 0);
 
 if (render_part == "guide" || render_part == "assembly")
-  translate(offset_assembly ? [0, 0, stand_height] : [0, 0, 0])
-    translate([0, 0, render_part == "assembly" ? stand_height : 0])
-      guide();
+  translate([0, 0, guide_z_pos])
+    guide();
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Stand

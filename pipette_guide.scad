@@ -20,43 +20,34 @@ include <well_plate.scad>
 // User parameters
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// --- What to render ---
+/* [Render] */
 render_part = "assembly"; // ["assembly", "stand", "guide"]
-offset_assembly = true; // Shift guide up by stand height to show fit_clearance (assembly mode only)
-render_well_plate = true; // Show the well plate using the model from well_plate.scad
+offset_assembly = true; // Shift guide up by stand height to show fit (assembly mode only)
+render_well_plate = true; // Show the well plate model
 
-// --- Plate selection ---
+/* [Plate Selection] */
 plate_selection = 0; // [0:WP96 flat, 1:WP96 round, 2:WP384 flat, 3:WP1536 flat]
 
-// ===== Stand =====
-
-// --- Body ---
+/* [Stand] */
 wall_thickness = 5.0;
-
-// --- Snap-fit_clearance / locator ---
 snap_lip_height = 2.4; // Locator lip depth below guide
-snap_lip_width = 1.8; // Locator lip wall_thickness thickness
+snap_lip_width = 1.8; // Locator lip wall thickness
 snap_bump = 0.05; // Interference beyond fit_clearance (0 = no clip)
 
-// ===== Guide =====
-
-// --- Body ---
+/* [Guide] */
 guide_height = 4;
+tip_diameter = 2; // Pipette tip OD (measure your tips)
+protrusion_extension = 3; // Extra length to protrude beyond lip into wells
 
-// --- Tip geometry (measure your pipette tips) ---
-tip_diameter = 2;
-protrusion_extension = 3; // Extra length to protrude beyond guide lip to help better guide into wells
-
-// --- Lift tabs ---
+/* [Lift Tabs] */
 tab_length = 18;
 tab_width = 9;
 tab_height = 3;
 
-// --- Labels ---
+/* [Labels] */
 label_depth = 0.5;
 
-// ===== Fit & print tuning =====
-
+/* [Fit + Print Tuning] */
 fit_clearance = 0.40; // Clearance between mating parts
 
 module dummy(){} // ── customizer fence ──

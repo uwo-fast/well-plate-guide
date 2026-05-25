@@ -96,7 +96,7 @@ module wp_single_well(type) {
       // Sphere bottom half forms the U-bottom; top half is redundant
       // (subsumed by cylinder). Safe because this is negative space.
       translate([0, 0, br])
-        cylinder(h=depth - br, d2=d, d1 = br*2, $fn=32);
+        cylinder(h=depth - br, d2=d, d1=br * 2, $fn=32);
       translate([0, 0, br])
         sphere(r=br, $fn=32);
     }
@@ -119,19 +119,25 @@ module wp_single_well(type) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Full plate: body with wells cut, plus flange below
-module well_plate(type) {
-  // Body: outer envelope minus wells
-  difference() {
-    // Solid body from Datum A (Z=0) up to plate height
-    linear_extrude(WP_HEIGHT)
-      wp_rounded_rect(WP_LENGTH, WP_WIDTH, WP_CORNER_R);
+module well_plate(type, datum_a_bottom = true) {
+  // translate by height of flange to set Datum A at bottom of flange, not plate body
+  wp_flange_height_offset = datum_a_bottom ? wp_flange_h(type) : 0;
+  translate([0, 0, wp_flange_height_offset])
+    union() {
 
-    // Cut wells from top
-    wp_well_array(type);
-  }
+      // Flange / skirt below Datum A
+      wp_flange(type);
 
-  // Flange / skirt below Datum A
-  wp_flange(type);
+      // Body: outer envelope minus wells
+      difference() {
+        // Solid body from Datum A (Z=0) up to plate height
+        linear_extrude(WP_HEIGHT)
+          wp_rounded_rect(WP_LENGTH, WP_WIDTH, WP_CORNER_R);
+
+        // Cut wells from top
+        wp_well_array(type);
+      }
+    }
 }
 
 // Array of wells positioned on the plate (negative space, cut from top down)

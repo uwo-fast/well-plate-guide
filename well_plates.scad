@@ -34,3 +34,6 @@ WP1536_FLAT_SHORT = ["1536 flat short",  32,   48,  2.25,  11.005,  7.865,   1.5
 well_plates = [WP96_FLAT_SHORT, WP96_ROUND_MEDIUM, WP384_FLAT_SHORT, WP1536_FLAT_SHORT];
 
 use <well_plate.scad>
+
+// Example usage:
+// well_plate(WP96_FLAT_SHORT);

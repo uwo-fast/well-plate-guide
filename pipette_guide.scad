@@ -22,30 +22,30 @@ include <well_plate.scad>
 
 // --- What to render ---
 render_part = "assembly"; // ["assembly", "stand", "guide"]
-offset_assembly = true; // Shift guide up by stand height to show fit (assembly mode only)
+offset_assembly = true; // Shift guide up by stand height to show fit_clearance (assembly mode only)
 render_well_plate = true; // Show the well plate using the model from well_plate.scad
 
 // --- Plate selection ---
 plate_selection = 0; // [0:WP96 flat, 1:WP96 round, 2:WP384 flat, 3:WP1536 flat]
 
+// ===== Stand =====
+
+// --- Body ---
+wall_thickness = 5.0;
+
+// --- Snap-fit_clearance / locator ---
+snap_lip_height = 2.4; // Locator lip depth below guide
+snap_lip_width = 1.8; // Locator lip wall_thickness thickness
+snap_bump = 0.05; // Interference beyond fit_clearance (0 = no clip)
+
+// ===== Guide =====
+
+// --- Body ---
+guide_height = 4;
+
 // --- Tip geometry (measure your pipette tips) ---
 tip_diameter = 2;
-protrusion_extension = 2; // Extra length to protrude beyond guide lip to help better guide into wells
-
-// --- Fit & print tuning ---
-fit_clearance = 0.80; // snap_lip_height between well plate edge and stand inner wall
-shrink = 0.0; // Extra clearance for shrink-prone materials (PP: ~0.35)
-
-// --- Structure ---
-wall = 5.0; // Frame wall thickness
-
-// --- Snap-fit / locator ---
-snap_clearance = 0.40; // snap_lip_height between stand pocket and guide lip
-snap_lip_height = 2.5; // Locator lip depth below guide
-snap_lip_width = 1.8; // Locator lip wall thickness
-snap_bump = 0.05; // Interference beyond snap_clearance (0 = no clip)
-snap_bump_length = 10.0; // Bump extent along each side
-snap_bump_height = 0.8; // Bump vertical height
+protrusion_extension = 3; // Extra length to protrude beyond guide lip to help better guide into wells
 
 // --- Lift tabs ---
 tab_length = 18;
@@ -55,7 +55,9 @@ tab_height = 3;
 // --- Labels ---
 label_depth = 0.5;
 
-guide_height = 4; // guide thickness
+// ===== Fit & print tuning =====
+
+fit_clearance = 0.40; // Clearance between mating parts
 
 module dummy(){} // ── customizer fence ──
 
@@ -76,22 +78,21 @@ pitch = wp_pitch(plate_type);
 a1_x = wp_a1_x(plate_type);
 a1_y = wp_a1_y(plate_type);
 
-// Bore diameters (with shrink compensation)
-fit = fit_clearance + shrink;
+// Envelope
+outer_length = WP_LENGTH + 2 * (fit_clearance + wall_thickness);
+outer_width = WP_WIDTH + 2 * (fit_clearance + wall_thickness);
+inner_length = WP_LENGTH + 2 * fit_clearance;
+inner_width = WP_WIDTH + 2 * fit_clearance;
+
+snap_bump_length = outer_width / 10; // Bump extent along each side
+snap_bump_height = snap_lip_height / 3; // Bump vertical height
+
+bump_depth = snap_bump;
+pocket_length = inner_length + fit_clearance * 2;
+pocket_width = inner_width + fit_clearance * 2;
 
 // Vertical positions
 stand_height = WP_HEIGHT + wp_flange_h(plate_type) + snap_lip_height; // Z of plate underside
-
-// Envelope
-outer_length = WP_LENGTH + 2 * (fit + wall);
-outer_width = WP_WIDTH + 2 * (fit + wall);
-inner_length = WP_LENGTH + 2 * fit;
-inner_width = WP_WIDTH + 2 * fit;
-
-// Snap-fit derived
-bump_depth = snap_clearance + snap_bump;
-pocket_length = inner_length + 2 * snap_clearance;
-pocket_width = inner_width + 2 * snap_clearance;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Render selector
@@ -118,9 +119,9 @@ if (render_part == "guide" || render_part == "assembly")
 module stand() {
   difference() {
     translate([0, 0, 0])
-      rbox(outer_length, outer_width, stand_height, wall / 2);
+      rbox(outer_length, outer_width, stand_height, wall_thickness / 2);
     translate([0, 0, 0 - z_fight / 2])
-      rbox(pocket_length, pocket_width, stand_height + z_fight, wall / 2);
+      rbox(pocket_length, pocket_width, stand_height + z_fight, wall_thickness / 2);
 
     translate([0, outer_width, 0])
       rotate([90, 0, 0])
@@ -152,7 +153,7 @@ module guide() {
     union() {
       // Guide plate body
       translate([0, 0, 0])
-        rbox(outer_length, outer_width, guide_height, wall / 2);
+        rbox(outer_length, outer_width, guide_height, wall_thickness / 2);
 
       // Protrusions to guide tips into well plate
       for (r = [0:rows - 1], c = [0:cols - 1]) {
@@ -161,7 +162,7 @@ module guide() {
           cylinder(h=snap_lip_height + guide_height + protrusion_extension, d1=tip_diameter * 1.5, d2=tip_diameter * 2, $fn=32);
       }
       // Locator lip + snap bumps
-      translate([0, 0, -(snap_lip_height - fit / 2)])
+      translate([0, 0, -(snap_lip_height - fit_clearance / 2)])
         snap_lip(snap_lip_height);
 
       // Lift tabs

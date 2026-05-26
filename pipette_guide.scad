@@ -22,6 +22,7 @@ render_part = "assembly"; // ["assembly", "stand", "guide", "base"]
 offset_assembly = true; // Lifts guide onto stand in assembly view
 render_well_plate = true; // Shows transparent reference well plate
 view_cross_section = false; // Hides part geometry and shows cross section instead
+guide_interstitial_protrusions = true; // Adds extra protrusions in between wells for more friction fit
 
 /* [Plate Selection] */
 plate_selection = 0; // [0:WP24 CytoView MEA, 1:WP96 flat, 2:WP96 round, 3:WP384 flat, 4:WP1536 flat]
@@ -151,7 +152,7 @@ if (render_part == "stand" || render_part == "assembly")
 if (render_part == "guide" || render_part == "assembly")
   cross_section(active=view_cross_section)
     translate([0, 0, render_part == "assembly" && offset_assembly ? stand_height : 0])
-      guide();
+      guide(interstitial_protrusions = guide_interstitial_protrusions);
 
 if (render_part == "base" || render_part == "assembly")
   cross_section(active=view_cross_section)
@@ -175,7 +176,7 @@ module base() {
       // Well viewing cutouts through floor
       at_wells()
         translate([0, 0, -z_fight / 2])
-          cylinder(h = base_thickness + z_fight, d = wp_well_d(plate_type), $fn = 32);
+          cylinder(h=base_thickness + z_fight, d=wp_well_d(plate_type), $fn=32);
     }
 }
 
@@ -210,7 +211,7 @@ module stand() {
 // Guide
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module guide() {
+module guide(interstitial_protrusions = false) {
   // Prevents protrusions from going too deep into the well
   assert(
     protrusion_extension <= wp_well_depth(plate_type) * 0.80,
@@ -231,6 +232,17 @@ module guide() {
             r2=protrusion_r2,
             $fn=32
           );
+
+      // Solid interstitial protrusions (no bore) press plate into stand
+      if (interstitial_protrusions)
+        at_interstitial()
+          translate([0, 0, -snap_lip_height - protrusion_extension])
+            cylinder(
+              h=protrusion_height,
+              r1=protrusion_r1,
+              r2=protrusion_r2,
+              $fn=32
+            );
 
       // Locator lip underneath guide plate
       translate([0, 0, -(snap_lip_height - fit_clearance / 2)])
@@ -319,6 +331,13 @@ module at_wells() {
       children();
 }
 
+// Applies child geometry at interstitial points (centered between 4 adjacent wells)
+module at_interstitial() {
+  for (r = [0:rows - 2], c = [0:cols - 2])
+    translate(well_xy(r, c) + [pitch / 2, -pitch / 2, 0])
+      children();
+}
+
 // Converts row/column index into XY location
 function well_xy(row, col) =
   [
@@ -329,7 +348,7 @@ function well_xy(row, col) =
 
 // Rounded rectangle box centered in XY, base at Z=0.
 // Avoids hull() by using 2D offset + linear_extrude.
-module rbox(length, width, height, radius, center=true) {
+module rbox(length, width, height, radius, center = true) {
   r = min(radius, min(length, width) / 2 - 0.01);
 
   linear_extrude(height)

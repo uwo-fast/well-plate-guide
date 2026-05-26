@@ -11,24 +11,29 @@
 
 include <well_plates.scad>
 include <well_plate.scad>
+use <utils.scad> // For cross_section() module
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // User parameters
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /* [Render] */
-render_part = "assembly"; // ["assembly", "stand", "guide"]
-offset_assembly = true;   // Lifts guide onto stand in assembly view
+render_part = "assembly"; // ["assembly", "stand", "guide", "base"]
+offset_assembly = true; // Lifts guide onto stand in assembly view
 render_well_plate = true; // Shows transparent reference well plate
+view_cross_section = false; // Hides part geometry and shows cross section instead
 
 /* [Plate Selection] */
 plate_selection = 0; // [0:WP24 CytoView MEA, 1:WP96 flat, 2:WP96 round, 3:WP384 flat, 4:WP1536 flat]
 
+/* [Base] */
+base_thickness = 2.4; // Thickness of optional base plate for extra stability
+
 /* [Stand] */
 wall_thickness = 5.0;
 snap_lip_height = 2.4; // Depth of locator lip below guide plate
-snap_lip_width = 1.8;  // Thickness of locator lip wall
-snap_bump = 0.05;      // Small snap interference; set 0 for no snap bump
+snap_lip_width = 1.8; // Thickness of locator lip wall
+snap_bump = 0.05; // Small snap interference; set 0 for no snap bump
 
 /* [Guide] */
 guide_height = 4;
@@ -36,9 +41,6 @@ guide_height = 4;
 // Upper pipette opening.
 // Change this if the pipette body/tip needs more clearance at the top.
 tip_diameter = 3.6;
-
-// draft_angle = 25;
-// bottom_hole_diameter_from_angle = 
 
 // Smaller bottom opening.
 // Change this to make only the lower guide hole tighter or looser.
@@ -77,7 +79,7 @@ tab_height = 3;
 label_depth = 0.5;
 
 /* [Fit + Print Tuning] */
-fit_clearance = 0.40; // General clearance for fit between stand and guide
+fit_clearance = 0.2; // General clearance for fit between stand and guide
 
 module dummy(){} // Customizer fence
 
@@ -117,14 +119,13 @@ protrusion_min_radius = bottom_hole_diameter / 2 + protrusion_min_wall;
 
 // Bottom outside radius calculated from taper angle
 protrusion_bottom_radius_from_angle =
-  protrusion_top_radius - protrusion_height * tan(protrusion_taper_angle);
+protrusion_top_radius - protrusion_height * tan(protrusion_taper_angle);
 
 // Final outside radii for lower protrusion
 protrusion_r1 = max(
   protrusion_min_radius,
-  protrusion_bottom_mode == "angle"
-    ? protrusion_bottom_radius_from_angle
-    : protrusion_bottom_radius
+  protrusion_bottom_mode == "angle" ? protrusion_bottom_radius_from_angle
+  : protrusion_bottom_radius
 );
 
 protrusion_r2 = max(protrusion_min_radius, protrusion_top_radius);
@@ -139,15 +140,44 @@ bump_depth = snap_bump;
 // ═══════════════════════════════════════════════════════════════════════════════
 
 if (render_well_plate)
-  color("LightGray", alpha=0.5)
-    well_plate(plate_type);
+  cross_section(active=view_cross_section)
+    color("LightGray", alpha=0.5)
+      well_plate(plate_type);
 
 if (render_part == "stand" || render_part == "assembly")
-  stand();
+  cross_section(active=view_cross_section)
+    stand();
 
 if (render_part == "guide" || render_part == "assembly")
-  translate([0, 0, render_part == "assembly" && offset_assembly ? stand_height : 0])
-    guide();
+  cross_section(active=view_cross_section)
+    translate([0, 0, render_part == "assembly" && offset_assembly ? stand_height : 0])
+      guide();
+
+if (render_part == "base" || render_part == "assembly")
+  cross_section(active=view_cross_section)
+    base();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Base (optional)
+// ═══════════════════════════════════════════════════════════════════════════════
+module base() {
+  // Optional base plate for extra stability.
+  // Slightly larger than the stand footprint with a pocket for the stand to nest into.
+  base_length = outer_length + base_thickness * 2;
+  base_width = outer_width + base_thickness * 2;
+  r = wall_thickness / 2; // Match stand corner radius
+
+  translate([0, 0, -base_thickness])
+    difference() {
+      rbox(base_length, base_width, base_thickness * 2, r);
+      translate([0, 0, base_thickness])
+        rbox(outer_length + fit_clearance, outer_width + fit_clearance, base_thickness + z_fight, r);
+      // Well viewing cutouts through floor
+      at_wells()
+        translate([0, 0, -z_fight / 2])
+          cylinder(h = base_thickness + z_fight, d = wp_well_d(plate_type), $fn = 32);
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Stand
@@ -294,15 +324,15 @@ function well_xy(row, col) =
   [
     -WP_LENGTH / 2 + a1_x + col * pitch,
     WP_WIDTH / 2 - a1_y - row * pitch,
-    0
+    0,
   ];
 
 // Rounded rectangle box centered in XY, base at Z=0.
 // Avoids hull() by using 2D offset + linear_extrude.
-module rbox(length, width, height, radius) {
+module rbox(length, width, height, radius, center=true) {
   r = min(radius, min(length, width) / 2 - 0.01);
 
   linear_extrude(height)
     offset(r=r)
-      square([length - 2 * r, width - 2 * r], center=true);
+      square([length - 2 * r, width - 2 * r], center=center);
 }

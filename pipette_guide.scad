@@ -2,16 +2,12 @@
 // Two-part design: reusable stand + removable guide plate with multi-stage bore.
 // All plate geometry sourced from well_plate.scad / well_plates.scad.
 // Units: mm
+// Main editable values:
+// - tip_diameter controls the upper pipette opening.
+// - bottom_hole_diameter controls the smaller lower guide hole.
+// - protrusion_* controls the outside cone that enters the well.
 // By Cameron Brooks and Hadden Christ, May 2026
 // License: AGPL-3.0 (see LICENSE)
-//
-// Out of scope:
-//   - 24-well plates (non-standard, to be added later)
-//
-
-// TODO / Future work:
-//   - 24-well plate support (non-SLAS, needs height override in well_plates.scad)
-//   - Well taper in plate model (does not affect guide geometry)
 
 include <well_plates.scad>
 include <well_plate.scad>
@@ -22,22 +18,55 @@ include <well_plate.scad>
 
 /* [Render] */
 render_part = "assembly"; // ["assembly", "stand", "guide"]
-offset_assembly = true; // Shift guide up by stand height to show fit (assembly mode only)
-render_well_plate = true; // Show the well plate model
+offset_assembly = true;   // Lifts guide onto stand in assembly view
+render_well_plate = true; // Shows transparent reference well plate
 
 /* [Plate Selection] */
-plate_selection = 0; // [0:WP96 flat, 1:WP96 round, 2:WP384 flat, 3:WP1536 flat]
+plate_selection = 0; // [0:WP24 CytoView MEA, 1:WP96 flat, 2:WP96 round, 3:WP384 flat, 4:WP1536 flat]
 
 /* [Stand] */
 wall_thickness = 5.0;
-snap_lip_height = 2.4; // Locator lip depth below guide
-snap_lip_width = 1.8; // Locator lip wall thickness
-snap_bump = 0.05; // Interference beyond fit_clearance (0 = no clip)
+snap_lip_height = 2.4; // Depth of locator lip below guide plate
+snap_lip_width = 1.8;  // Thickness of locator lip wall
+snap_bump = 0.05;      // Small snap interference; set 0 for no snap bump
 
 /* [Guide] */
 guide_height = 4;
-tip_diameter = 2; // Pipette tip OD (measure your tips)
-protrusion_extension = 3; // Extra length to protrude beyond lip into wells
+
+// Upper pipette opening.
+// Change this if the pipette body/tip needs more clearance at the top.
+tip_diameter = 3.6;
+
+// draft_angle = 25;
+// bottom_hole_diameter_from_angle = 
+
+// Smaller bottom opening.
+// Change this to make only the lower guide hole tighter or looser.
+bottom_hole_diameter = 2.6;
+
+// Top hole stays tied to tip diameter unless you want independent control.
+top_hole_diameter = tip_diameter;
+
+// Extra protrusion length below the snap lip into the well.
+protrusion_extension = 3;
+
+/* [Bottom Protrusion Shape] */
+// Controls the OUTSIDE of the lower cone.
+// This does not control the actual hole size.
+protrusion_bottom_mode = "angle"; // ["angle", "radius"]
+
+// Top outside radius of cone.
+protrusion_top_radius = tip_diameter;
+
+// Bottom outside radius, only used when protrusion_bottom_mode = "radius".
+protrusion_bottom_radius = tip_diameter * 0.75;
+
+// Taper angle, only used when protrusion_bottom_mode = "angle".
+// Bigger angle = smaller outside radius at the bottom.
+protrusion_taper_angle = 5.5;
+
+// Minimum wall around the bottom hole so the cone does not get too thin.
+protrusion_min_wall = 0.8;
 
 /* [Lift Tabs] */
 tab_length = 18;
@@ -48,9 +77,9 @@ tab_height = 3;
 label_depth = 0.5;
 
 /* [Fit + Print Tuning] */
-fit_clearance = 0.40; // Clearance between mating parts
+fit_clearance = 0.40; // General clearance for fit between stand and guide
 
-module dummy(){} // ── customizer fence ──
+module dummy(){} // Customizer fence
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Derived dimensions
@@ -59,31 +88,51 @@ module dummy(){} // ── customizer fence ──
 $fn = $preview ? 32 : 128;
 z_fight = 0.05;
 
-// Derived from plate selection, corresponding to well_plates array in well_plates.scad
 plate_type = well_plates[plate_selection];
 
-// Plate accessors
 rows = wp_rows(plate_type);
 cols = wp_cols(plate_type);
 pitch = wp_pitch(plate_type);
 a1_x = wp_a1_x(plate_type);
 a1_y = wp_a1_y(plate_type);
 
-// Envelope
+// Overall guide/stand envelope around the well plate
 outer_length = WP_LENGTH + 2 * (fit_clearance + wall_thickness);
 outer_width = WP_WIDTH + 2 * (fit_clearance + wall_thickness);
+
 inner_length = WP_LENGTH + 2 * fit_clearance;
 inner_width = WP_WIDTH + 2 * fit_clearance;
 
-snap_bump_length = outer_width / 10; // Bump extent along each side
-snap_bump_height = snap_lip_height / 3; // Bump vertical height
+pocket_length = inner_length + 2 * fit_clearance;
+pocket_width = inner_width + 2 * fit_clearance;
 
+// Stand height reaches the plate top/flange plus snap-lip engagement
+stand_height = WP_HEIGHT + wp_flange_h(plate_type) + snap_lip_height;
+
+// Height of lower cone section
+protrusion_height = snap_lip_height + guide_height + protrusion_extension;
+
+// Minimum outside radius allowed based on bottom hole and wall thickness
+protrusion_min_radius = bottom_hole_diameter / 2 + protrusion_min_wall;
+
+// Bottom outside radius calculated from taper angle
+protrusion_bottom_radius_from_angle =
+  protrusion_top_radius - protrusion_height * tan(protrusion_taper_angle);
+
+// Final outside radii for lower protrusion
+protrusion_r1 = max(
+  protrusion_min_radius,
+  protrusion_bottom_mode == "angle"
+    ? protrusion_bottom_radius_from_angle
+    : protrusion_bottom_radius
+);
+
+protrusion_r2 = max(protrusion_min_radius, protrusion_top_radius);
+
+// Snap bump sizing
+snap_bump_length = outer_width / 10;
+snap_bump_height = snap_lip_height / 3;
 bump_depth = snap_bump;
-pocket_length = inner_length + fit_clearance * 2;
-pocket_width = inner_width + fit_clearance * 2;
-
-// Vertical positions
-stand_height = WP_HEIGHT + wp_flange_h(plate_type) + snap_lip_height; // Z of plate underside
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Render selector
@@ -96,11 +145,8 @@ if (render_well_plate)
 if (render_part == "stand" || render_part == "assembly")
   stand();
 
-guide_z_pos =
-(offset_assembly ? stand_height : 0) + (render_part == "assembly" ? stand_height : 0);
-
 if (render_part == "guide" || render_part == "assembly")
-  translate([0, 0, guide_z_pos])
+  translate([0, 0, render_part == "assembly" && offset_assembly ? stand_height : 0])
     guide();
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -109,16 +155,20 @@ if (render_part == "guide" || render_part == "assembly")
 
 module stand() {
   difference() {
-    translate([0, 0, 0])
-      rbox(outer_length, outer_width, stand_height, wall_thickness / 2);
-    translate([0, 0, 0 - z_fight / 2])
+    // Main outer stand body
+    rbox(outer_length, outer_width, stand_height, wall_thickness / 2);
+
+    // Inner pocket for well plate
+    translate([0, 0, -z_fight / 2])
       rbox(pocket_length, pocket_width, stand_height + z_fight, wall_thickness / 2);
 
+    // Side relief cut
     translate([0, outer_width, 0])
       rotate([90, 0, 0])
         scale([pocket_length / stand_height, 1.5, 1])
           cylinder(d=stand_height, h=outer_width * 2, $fn=64);
 
+    // Front/back relief cut
     translate([-outer_length, 0, 0])
       rotate([0, 90, 0])
         scale([1.5, pocket_width / stand_height, 1])
@@ -127,14 +177,11 @@ module stand() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// guide
+// Guide
 // ═══════════════════════════════════════════════════════════════════════════════
 
 module guide() {
-
-  // Ensure that the user has not set a protrusion extension that is too long 
-  // and may cause the guide to touch the bottom of the wells, which could lead 
-  // to damage of the specimen, well plate, or tip of the pipette.
+  // Prevents protrusions from going too deep into the well
   assert(
     protrusion_extension <= wp_well_depth(plate_type) * 0.80,
     "Protrusion extension is too long and may touch the bottom."
@@ -142,34 +189,42 @@ module guide() {
 
   difference() {
     union() {
-      // Guide plate body
-      translate([0, 0, 0])
-        rbox(outer_length, outer_width, guide_height, wall_thickness / 2);
+      // Main guide plate
+      rbox(outer_length, outer_width, guide_height, wall_thickness / 2);
 
-      // Protrusions to guide tips into well plate
-      for (r = [0:rows - 1], c = [0:cols - 1]) {
-        p = well_xy(r, c);
-        translate([p.x, p.y, -snap_lip_height - protrusion_extension])
-          cylinder(h=snap_lip_height + guide_height + protrusion_extension, d1=tip_diameter * 1.5, d2=tip_diameter * 2, $fn=32);
-      }
-      // Locator lip + snap bumps
+      // Lower protrusions that enter the wells
+      at_wells()
+        translate([0, 0, -snap_lip_height - protrusion_extension])
+          cylinder(
+            h=protrusion_height,
+            r1=protrusion_r1,
+            r2=protrusion_r2,
+            $fn=32
+          );
+
+      // Locator lip underneath guide plate
       translate([0, 0, -(snap_lip_height - fit_clearance / 2)])
         snap_lip(snap_lip_height);
 
-      // Lift tabs
+      // Side lift tabs
       for (sx = [-1, 1])
-        translate([sx * (outer_length / 2), 0, 0 + guide_height - tab_height])
+        translate([sx * outer_length / 2, 0, guide_height - tab_height])
           rbox(tab_length, tab_width, tab_height, tab_width / 4);
     }
 
-    // bore at each well
-    for (r = [0:rows - 1], c = [0:cols - 1]) {
-      p = well_xy(r, c);
-      translate([p.x, p.y, -snap_lip_height - protrusion_extension - z_fight / 2])
-        cylinder(h=guide_height + snap_lip_height + protrusion_extension + z_fight, d=tip_diameter);
-    }
+    // Tapered bore cut through each protrusion
+    // d1 = bottom hole diameter
+    // d2 = top hole diameter
+    at_wells()
+      translate([0, 0, -snap_lip_height - protrusion_extension - z_fight / 2])
+        cylinder(
+          h=protrusion_height + z_fight,
+          d1=bottom_hole_diameter,
+          d2=top_hole_diameter,
+          $fn=32
+        );
 
-    // Engraved labels
+    // Engraved row/column labels
     translate([0, 0, guide_height])
       well_labels();
   }
@@ -179,25 +234,26 @@ module guide() {
 // Sub-modules
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module snap_lip(lip_height) {
-  // Hollow rectangular lip
+module snap_lip(h) {
+  // Hollow rectangular locator lip
   difference() {
-    translate([0, 0, 0])
-      rbox(inner_length, inner_width, lip_height + z_fight, snap_lip_width / 2);
+    rbox(inner_length, inner_width, h + z_fight, snap_lip_width / 2);
+
     translate([0, 0, -z_fight / 2])
       rbox(
         inner_length - 2 * snap_lip_width,
         inner_width - 2 * snap_lip_width,
-        lip_height + z_fight,
+        h + z_fight,
         snap_lip_width / 2
       );
   }
 
-  // Snap bumps
+  // Small bumps for snap fit
   if (snap_bump > 0) {
     for (sx = [-1, 1])
       translate([sx * (inner_length / 2 + bump_depth / 2), 0, 0])
         rbox(bump_depth, snap_bump_length, snap_bump_height, bump_depth / 2);
+
     for (sy = [-1, 1])
       translate([0, sy * (inner_width / 2 + bump_depth / 2), 0])
         rbox(snap_bump_length, bump_depth, snap_bump_height, bump_depth / 2);
@@ -205,41 +261,48 @@ module snap_lip(lip_height) {
 }
 
 module well_labels() {
-
   label_size = pitch / 3;
 
-  // Row letters (A, B, C, ...)
+  // Row letters: A, B, C, ...
   for (r = [0:rows - 1]) {
     p = well_xy(r, 0);
-    translate([p.x - label_size * 2, p.y, -label_depth])
+
+    translate([p[0] - 2 * label_size, p[1], -label_depth])
       linear_extrude(label_depth + z_fight)
         text(chr(65 + r), size=label_size, halign="center", valign="center");
   }
-  // Column numbers (1, 2, 3, ...)
+
+  // Column numbers: 1, 2, 3, ...
   for (c = [0:cols - 1]) {
     p = well_xy(0, c);
-    translate([p.x, p.y + label_size * 2, -label_depth])
+
+    translate([p[0], p[1] + 2 * label_size, -label_depth])
       linear_extrude(label_depth + z_fight)
         text(str(c + 1), size=label_size, halign="center", valign="center");
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Helpers
-// ═══════════════════════════════════════════════════════════════════════════════
+// Applies child geometry at every well location
+module at_wells() {
+  for (r = [0:rows - 1], c = [0:cols - 1])
+    translate(well_xy(r, c))
+      children();
+}
 
+// Converts row/column index into XY location
 function well_xy(row, col) =
   [
     -WP_LENGTH / 2 + a1_x + col * pitch,
     WP_WIDTH / 2 - a1_y - row * pitch,
-    0,
+    0
   ];
 
-// Rounded-corner box centered on XY, base at Z=0
+// Rounded rectangle box centered in XY, base at Z=0.
+// Avoids hull() by using 2D offset + linear_extrude.
 module rbox(length, width, height, radius) {
-  r = min(radius, min(length, width) / 2);
-  translate([0, 0, height / 2])
-    hull()for (i = [-1, 1], j = [-1, 1])
-      translate([i * (length / 2 - r), j * (width / 2 - r), 0])
-        cylinder(r=r, h=height, center=true);
+  r = min(radius, min(length, width) / 2 - 0.01);
+
+  linear_extrude(height)
+    offset(r=r)
+      square([length - 2 * r, width - 2 * r], center=true);
 }

@@ -26,12 +26,13 @@
 
 //                       [0]            [1]  [2]    [3]    [4]      [5]     [6]      [7]    [8]       [9]    [10]    [11]   [12]
 //                       name          rows  cols  pitch   a1_x     a1_y    well_d  depth   shape     bot_r  fl_h   fl_h_l  clr
+WP24_CYTOVIEW_MEA = ["24 CytoView MEA",  4,    6,  18.00,  18.83,   15.69,  15.00,  13.20,  "round",   0,    2.41,    0,    true];
 WP96_FLAT_SHORT   = ["96 flat short",    8,   12,   9.00,  14.38,   11.24,   6.86,  10.67,  "round",   0,    2.41,    0,    true];
 WP96_ROUND_MEDIUM = ["96 round medium",  8,   12,   9.00,  14.38,   11.24,   6.86,  10.67,  "round",   3.43, 6.10,    0,    true];
-WP384_FLAT_SHORT  = ["384 flat short",   16,   24,  4.50,  12.13,   8.99,    3.63,  11.56,  "round",   0,    2.41,    0,    true];
-WP1536_FLAT_SHORT = ["1536 flat short",  32,   48,  2.25,  11.005,  7.865,   1.50,   5.00,  "square",  0,    2.41,    0,    true];
+WP384_FLAT_SHORT  = ["384 flat short",   16,  24,   4.50,  12.13,   8.99,    3.63,  11.56,  "round",   0,    2.41,    0,    true];
+WP1536_FLAT_SHORT = ["1536 flat short",  32,  48,   2.25,  11.005,  7.865,   1.50,   5.00,  "square",  0,    2.41,    0,    true];
 
-well_plates = [WP96_FLAT_SHORT, WP96_ROUND_MEDIUM, WP384_FLAT_SHORT, WP1536_FLAT_SHORT];
+well_plates = [ WP24_CYTOVIEW_MEA,WP96_FLAT_SHORT, WP96_ROUND_MEDIUM, WP384_FLAT_SHORT, WP1536_FLAT_SHORT];
 
 use <well_plate.scad>
 

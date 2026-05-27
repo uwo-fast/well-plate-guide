@@ -159,8 +159,9 @@ if (render_part == "base" || render_part == "assembly")
     base();
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Base (optional)
+// Base optional
 // ═══════════════════════════════════════════════════════════════════════════════
+
 module base() {
   // Optional base plate for extra stability.
   // Slightly larger than the stand footprint with a pocket for the stand to nest into.
@@ -171,12 +172,23 @@ module base() {
   translate([0, 0, -base_thickness])
     difference() {
       rbox(base_length, base_width, base_thickness * 2, r);
+
       translate([0, 0, base_thickness])
-        rbox(outer_length + fit_clearance, outer_width + fit_clearance, base_thickness + z_fight, r);
+        rbox(
+          outer_length + fit_clearance,
+          outer_width + fit_clearance,
+          base_thickness + z_fight,
+          r
+        );
+
       // Well viewing cutouts through floor
       at_wells()
         translate([0, 0, -z_fight / 2])
-          cylinder(h=base_thickness + z_fight, d=wp_well_d(plate_type), $fn=32);
+          cylinder(
+            h=base_thickness + z_fight,
+            d=wp_well_d(plate_type),
+            $fn=32
+          );
     }
 }
 
@@ -233,7 +245,8 @@ module guide(interstitial_protrusions = false) {
             $fn=32
           );
 
-      // Solid interstitial protrusions (no bore) press plate into stand
+      // Solid interstitial protrusions with no bore.
+      // These sit between four wells and help press the plate down for a friction fit.
       if (interstitial_protrusions)
         at_interstitial()
           translate([0, 0, -snap_lip_height - protrusion_extension])
@@ -331,7 +344,7 @@ module at_wells() {
       children();
 }
 
-// Applies child geometry at interstitial points (centered between 4 adjacent wells)
+// Applies child geometry at interstitial points centered between four adjacent wells
 module at_interstitial() {
   for (r = [0:rows - 2], c = [0:cols - 2])
     translate(well_xy(r, c) + [pitch / 2, -pitch / 2, 0])
@@ -346,12 +359,12 @@ function well_xy(row, col) =
     0,
   ];
 
-// Rounded rectangle box centered in XY, base at Z=0.
-// Avoids hull() by using 2D offset + linear_extrude.
+// Rounded rectangle box, base at Z=0.
 module rbox(length, width, height, radius, center = true) {
   r = min(radius, min(length, width) / 2 - 0.01);
 
-  linear_extrude(height)
-    offset(r=r)
-      square([length - 2 * r, width - 2 * r], center=center);
+  translate(center ? [0, 0, 0] : [length / 2, width / 2, 0])
+    linear_extrude(height)
+      offset(r=r)
+        square([length - 2 * r, width - 2 * r], center=true);
 }

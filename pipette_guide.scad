@@ -1,4 +1,4 @@
-// Pipette Guide v4
+// Pipette Guide v1
 // Two-part design: reusable stand + removable guide plate with multi-stage bore.
 // All plate geometry sourced from well_plate.scad / well_plates.scad.
 // Units: mm

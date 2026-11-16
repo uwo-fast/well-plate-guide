@@ -1,15 +1,14 @@
 // Square Tip Checker Calibration Plate
-// Top axis = top hole radius
-// Left axis = bottom hole radius
+// Top axis = top hole diameter
+// Left axis = bottom hole diameter
 //
-// IMPORTANT:
-// In OpenSCAD cylinder():
-//   r1 = bottom radius
-//   r2 = top radius
+// The values are diameters, the same quantity as the guide's tip_diameter
+// and bottom_hole_diameter in pipette_guide.scad, so a hole that fits here
+// can be copied straight into the guide.
 //
 // This checker cuts each tapered hole from bottom to top:
-//   bottom radius = bottom_radii[row]
-//   top radius    = top_radii[column]
+//   bottom diameter = bottom_diameters[row]
+//   top diameter    = top_diameters[column]
 //
 // For organoid work, this uses wider/gentler ranges.
 // Units: mm
@@ -18,23 +17,19 @@ $fn = $preview ? 20 : 24;
 z_fight = 0.05;
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Radius values
+// Diameter values
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
-
-
-
-// Across the top: top radius values.
+// Across the top: top hole diameters.
 // These are larger so the pipette/tip enters easily.
-top_radii =    [3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0];
+top_diameters =    [6.0, 6.2, 6.4, 6.6, 6.8, 7.0, 7.2, 7.4, 7.6, 7.8, 8.0];
 
-// Down the left: bottom radius values.
+// Down the left: bottom hole diameters.
 // These are smaller so the bottom centers/guides the tip.
-bottom_radii = [2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0];
+bottom_diameters = [4.0, 4.2, 4.4, 4.6, 4.8, 5.0, 5.2, 5.4, 5.6, 5.8, 6.0];
 
-assert(len(top_radii) == len(bottom_radii),
-  "top_radii and bottom_radii must have the same length for a square checker.");
+assert(len(top_diameters) == len(bottom_diameters),
+  "top_diameters and bottom_diameters must have the same length for a square checker.");
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Main dimensions
@@ -69,7 +64,7 @@ grid_line_depth = 0.25;
 // Derived values
 // ═══════════════════════════════════════════════════════════════════════════════
 
-n = len(top_radii);
+n = len(top_diameters);
 
 grid_span = (n - 1) * spacing;
 plate_side = grid_span + 2 * plate_margin;
@@ -98,7 +93,7 @@ module tip_checker_square() {
 
       // Solid outside protrusions under each hole
       for (r = [0:n - 1], c = [0:n - 1]) {
-        bottom_r = bottom_radii[r];
+        bottom_r = bottom_diameters[r] / 2;
 
         safe_outside_bottom_r = max(
           outside_bottom_min_radius,
@@ -119,8 +114,8 @@ module tip_checker_square() {
 
     // Tapered holes through each protrusion
     for (r = [0:n - 1], c = [0:n - 1]) {
-      top_r = top_radii[c];
-      bottom_r = bottom_radii[r];
+      top_r = top_diameters[c] / 2;
+      bottom_r = bottom_diameters[r] / 2;
 
       translate(test_xy(r, c) + [0, 0, -protrusion_extension - z_fight / 2])
         cylinder(
@@ -151,7 +146,7 @@ module labels() {
   translate([0, plate_side / 2 - 4, plate_thickness - label_depth])
     linear_extrude(label_depth + z_fight)
       text(
-        "Top Radius",
+        "Top Diameter",
         size = axis_label_size,
         halign = "center",
         valign = "center"
@@ -162,27 +157,27 @@ module labels() {
     rotate([0, 0, 90])
       linear_extrude(label_depth + z_fight)
         text(
-          "Bottom Radius",
+          "Bottom Diameter",
           size = axis_label_size,
           halign = "center",
           valign = "center"
         );
 
-  // Top numbers = top radius values
+  // Top numbers = top hole diameters
   for (c = [0:n - 1]) {
     p = test_xy(0, c);
 
     translate([p[0], plate_side / 2 - 9, plate_thickness - label_depth])
       linear_extrude(label_depth + z_fight)
         text(
-          str(top_radii[c]),
+          str(top_diameters[c]),
           size = label_size,
           halign = "center",
           valign = "center"
         );
   }
 
-  // Left numbers = bottom radius values
+  // Left numbers = bottom hole diameters
   for (r = [0:n - 1]) {
     p = test_xy(r, 0);
 
@@ -190,7 +185,7 @@ module labels() {
       rotate([0, 0, 90])
         linear_extrude(label_depth + z_fight)
           text(
-            str(bottom_radii[r]),
+            str(bottom_diameters[r]),
             size = label_size,
             halign = "center",
             valign = "center"

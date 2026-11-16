@@ -1,8 +1,23 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. Remember to update this file as well as the version comment in `well_plate_pipette_guide.scad` header with each release.
+All notable changes to this project will be documented in this file. Remember to update this file as well as the version comment in the `pipette_guide.scad` header with each release.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/).
+
+## [Unreleased]
+
+### Fixed
+
+* `tip_checker.scad` lists and labels its holes by diameter (top 6.0-8.0 mm, bottom 4.0-6.0 mm), the same quantity as the guide's `tip_diameter` and `bottom_hole_diameter`. It used radii, so a hole read off the checker came out half the size in the guide.
+* `guide()` stops a render whose cones are wider than the plate's wells, or whose holes overlap at its pitch, as the defaults do on the 384- and 1536-well plates.
+
+### Changed
+
+* README rewritten to match the code: the stand, guide and base, the parameters as they are named in `pipette_guide.scad`, and which plates the defaults fit.
+
+### Removed
+
+* The ANSI/SLAS standard documents and the rewrite of them in `references/`. `references/README.md` cites the standards and links SLAS.
 
 ## [1.0.0] - 2026-06-08
 

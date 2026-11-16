@@ -131,6 +131,11 @@ protrusion_r1 = max(
 
 protrusion_r2 = max(protrusion_min_radius, protrusion_top_radius);
 
+// Outside diameter of the cone at the plate's top surface, the widest part
+// that enters a well (the lowest protrusion_extension of the cone)
+protrusion_in_well_d =
+  2 * (protrusion_r1 + protrusion_extension * (protrusion_r2 - protrusion_r1) / protrusion_height);
+
 // Snap bump sizing
 snap_bump_length = outer_width / 10;
 snap_bump_height = snap_lip_height / 3;
@@ -228,6 +233,23 @@ module guide(interstitial_protrusions = false) {
   assert(
     protrusion_extension <= wp_well_depth(plate_type) * 0.80,
     "Protrusion extension is too long and may touch the bottom."
+  );
+
+  // The defaults are sized for 24- and 96-well plates. Denser plates need
+  // smaller holes and cones, and these stop a render that cannot fit.
+  assert(
+    protrusion_in_well_d < wp_well_d(plate_type),
+    str(
+      "Guide cones are ", protrusion_in_well_d, " mm across where they enter the wells, but this plate's wells are ",
+      wp_well_d(plate_type), " mm: reduce protrusion_top_radius or raise protrusion_taper_angle."
+    )
+  );
+  assert(
+    top_hole_diameter < pitch,
+    str(
+      "Guide holes (top_hole_diameter = ", top_hole_diameter, " mm) overlap at this plate's ", pitch,
+      " mm pitch: reduce tip_diameter."
+    )
   );
 
   difference() {
